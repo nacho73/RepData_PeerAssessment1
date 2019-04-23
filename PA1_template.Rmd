@@ -1,7 +1,18 @@
+---
+title: "PA1_template"
+author: "José Ignacio Gavara"
+date: "18 de abril de 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 # Reproducible Research: Peer Assessment 1
 
 ```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
 library(ggplot2)
+library(lattice)
 library(scales)
 library(Hmisc)
 ```
@@ -10,54 +21,51 @@ library(Hmisc)
 ##### 1. Load the data (i.e. read.csv())
 ```{r, results='markup', warning=TRUE, message=TRUE}
 if(!file.exists('activity.csv')){
-    unzip('activity.zip')
+    unzip('repdata_data_activity.zip')
 }
-activityData <- read.csv('activity.csv')
+activity_data <- read.csv('activity.csv')
 ```
 ##### 2. Process/transform the data (if necessary) into a format suitable for your analysis
 ```{r}
-#activityData$interval <- strptime(gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", activityData$interval), format='%H:%M')
+#activity_data$interval <- strptime(gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", activity_data$interval), format='%H:%M')
 ```
 
 -----
 
 ## What is mean total number of steps taken per day?
 ```{r}
-stepsByDay <- tapply(activityData$steps, activityData$date, sum, na.rm=TRUE)
+steps_day <- tapply(activity_data$steps, activity_data$date, sum, na.rm=TRUE)
 ```
 
 ##### 1. Make a histogram of the total number of steps taken each day
 ```{r}
-qplot(stepsByDay, xlab='Total steps per day', ylab='Frequency using binwith 500', binwidth=500)
+qplot(steps_day, xlab='Total steps per day', ylab='Frequency using binwith 500', binwidth=500)
 ```
 
 ##### 2. Calculate and report the mean and median total number of steps taken per day
 ```{r}
-stepsByDayMean <- mean(stepsByDay)
-stepsByDayMedian <- median(stepsByDay)
+steps_dayMean <- mean(steps_day)
+steps_dayMedian <- median(steps_day)
 ```
-* Mean: `r stepsByDayMean`
-* Median:  `r stepsByDayMedian`
+* Mean: `r steps_dayMean`
+* Median:  `r steps_dayMedian`
 
 -----
 
 ## What is the average daily activity pattern?
 ```{r}
-averageStepsPerTimeBlock <- aggregate(x=list(meanSteps=activityData$steps), by=list(interval=activityData$interval), FUN=mean, na.rm=TRUE)
+average_steps_per_time_block <- aggregate(x=list(meanSteps=activity_data$steps), by=list(interval=activity_data$interval), FUN=mean, na.rm=TRUE)
 ```
 
 ##### 1. Make a time series plot
 ```{r}
-ggplot(data=averageStepsPerTimeBlock, aes(x=interval, y=meanSteps)) +
-    geom_line() +
-    xlab("5-minute interval") +
-    ylab("average number of steps taken") 
+xyplot(interval~meanSteps,data=average_steps_per_time_block,main="Time Series Plot",xlab="5-minute interval", ylab="average number of steps taken")
 ```
 
 ##### 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 ```{r}
-mostSteps <- which.max(averageStepsPerTimeBlock$meanSteps)
-timeMostSteps <-  gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", averageStepsPerTimeBlock[mostSteps,'interval'])
+mostSteps <- which.max(average_steps_per_time_block$meanSteps)
+timeMostSteps <-  gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", average_steps_per_time_block[mostSteps,'interval'])
 ```
 
 * Most Steps at: `r timeMostSteps`
@@ -67,7 +75,7 @@ timeMostSteps <-  gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", averageStepsPerTimeB
 ## Imputing missing values
 ##### 1. Calculate and report the total number of missing values in the dataset 
 ```{r}
-numMissingValues <- length(which(is.na(activityData$steps)))
+numMissingValues <- length(which(is.na(activity_data$steps)))
 ```
 
 * Number of missing values: `r numMissingValues`
@@ -75,24 +83,24 @@ numMissingValues <- length(which(is.na(activityData$steps)))
 ##### 2. Devise a strategy for filling in all of the missing values in the dataset.
 ##### 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 ```{r}
-activityDataImputed <- activityData
-activityDataImputed$steps <- impute(activityData$steps, fun=mean)
+activity_dataImputed <- activity_data
+activity_dataImputed$steps <- impute(activity_data$steps, fun=mean)
 ```
 
 
 ##### 4. Make a histogram of the total number of steps taken each day 
 ```{r}
-stepsByDayImputed <- tapply(activityDataImputed$steps, activityDataImputed$date, sum)
-qplot(stepsByDayImputed, xlab='Total steps per day (Imputed)', ylab='Frequency using binwith 500', binwidth=500)
+steps_dayImputed <- tapply(activity_dataImputed$steps, activity_dataImputed$date, sum)
+qplot(steps_dayImputed, xlab='Total steps per day (Imputed)', ylab='Frequency using binwith 500', binwidth=500)
 ```
 
 ##### ... and Calculate and report the mean and median total number of steps taken per day. 
 ```{r}
-stepsByDayMeanImputed <- mean(stepsByDayImputed)
-stepsByDayMedianImputed <- median(stepsByDayImputed)
+steps_dayMeanImputed <- mean(steps_dayImputed)
+steps_dayMedianImputed <- median(steps_dayImputed)
 ```
-* Mean (Imputed): `r stepsByDayMeanImputed`
-* Median (Imputed):  `r stepsByDayMedianImputed`
+* Mean (Imputed): `r steps_dayMeanImputed`
+* Median (Imputed):  `r steps_dayMedianImputed`
 
 
 ----
@@ -101,17 +109,38 @@ stepsByDayMedianImputed <- median(stepsByDayImputed)
 ##### 1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
 ```{r}
-activityDataImputed$dateType <-  ifelse(as.POSIXlt(activityDataImputed$date)$wday %in% c(0,6), 'weekend', 'weekday')
+activity_dataImputed$dateType <-  ifelse(as.POSIXlt(activity_dataImputed$date)$wday %in% c(0,6), 'weekend', 'weekday')
 ```
 
 ##### 2. Make a panel plot containing a time series plot
 
 ```{r}
-averagedActivityDataImputed <- aggregate(steps ~ interval + dateType, data=activityDataImputed, mean)
-ggplot(averagedActivityDataImputed, aes(interval, steps)) + 
-    geom_line() + 
-    facet_grid(dateType ~ .) +
-    xlab("5-minute interval") + 
-    ylab("avarage number of steps")
+averagedactivity_dataImputed <- aggregate(steps ~ interval + dateType, data=activity_dataImputed, mean)
+
+xyplot((steps ~ interval| dateType), 
+           data = averagedactivity_dataImputed,
+           type = "l",
+           xlab = "Interval",
+           ylab = "Number of steps",
+           layout=c(1,2)) 
+
+```
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
 ```
 
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
