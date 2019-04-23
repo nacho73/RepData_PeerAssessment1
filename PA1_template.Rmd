@@ -1,6 +1,6 @@
 ---
 title: "PA1_template"
-author: "José Ignacio Gavara"
+author: "Jos� Ignacio Gavara"
 date: "18 de abril de 2019"
 output: html_document
 ---
@@ -106,7 +106,7 @@ steps_dayMedianImputed <- median(steps_dayImputed)
 ----
 
 ## Are there differences in activity patterns between weekdays and weekends?
-##### 1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+##### 1. Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
 ```{r}
 activity_dataImputed$dateType <-  ifelse(as.POSIXlt(activity_dataImputed$date)$wday %in% c(0,6), 'weekend', 'weekday')
@@ -120,8 +120,8 @@ averagedactivity_dataImputed <- aggregate(steps ~ interval + dateType, data=acti
 xyplot((steps ~ interval| dateType), 
            data = averagedactivity_dataImputed,
            type = "l",
-           xlab = "Interval",
-           ylab = "Number of steps",
+           xlab = "5-minutes interval",
+           ylab = "Average number of steps",
            layout=c(1,2)) 
 
 ```
